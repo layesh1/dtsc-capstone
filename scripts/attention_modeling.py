@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import statsmodels.formula.api as smf
 import numpy as np
 from statsmodels.genmod.families import Binomial
+from matplotlib import pyplot as plt
 
 load_dotenv()
 
@@ -125,3 +126,103 @@ h1b_clinical = smf.glm(
 
 print(h1b_clinical.summary())
 print_odds_ratios(h1b_clinical, "H1b — Clinical ADHD x Age Group")
+
+# h1a — predicted probabilities by screen time (held at mean age)
+fig, ax = plt.subplots(figsize=(8, 5))
+
+mean_age = df_clean['AGE'].mean()
+screentime_range = np.linspace(1, 5, 100)
+
+log_odds_h1a = (h1a_clinical.params['Intercept'] +
+                h1a_clinical.params['SCREENTIME'] * screentime_range +
+                h1a_clinical.params['AGE'] * mean_age)
+prob_h1a = 1 / (1 + np.exp(-log_odds_h1a))
+
+ax.plot(screentime_range, prob_h1a * 100, color='#e74c3c', linewidth=2.5)
+ax.set_xticks([1, 2, 3, 4, 5])
+ax.set_xticklabels(['<1 hr', '1 hr', '2 hrs', '3 hrs', '4+ hrs'])
+ax.set_xlabel('Daily Screen Time')
+ax.set_ylabel('Predicted Probability of ADHD (%)')
+ax.set_title('H1a — Predicted ADHD Probability by Screen Time\n(all ages, held at mean age)')
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig('visualizations/h1a_predicted_probability.png', dpi=150, bbox_inches='tight')
+plt.show()
+
+# predicted probabilities by screen time and age group
+fig, ax = plt.subplots(figsize=(8, 5))
+
+colors = ['#e74c3c', '#3498db', '#2ecc71']
+params = h1b_clinical.params
+
+for color, group in zip(colors, ['0-5', '6-11', '12-17']):
+    if group == '0-5':
+        log_odds = (params['Intercept'] +
+                    params['SCREENTIME'] * screentime_range)
+    elif group == '6-11':
+        log_odds = (params['Intercept'] +
+                    params['C(AGE_GROUP, Treatment(reference="0-5"))[T.6-11]'] +
+                    params['SCREENTIME'] * screentime_range +
+                    params['SCREENTIME:C(AGE_GROUP, Treatment(reference="0-5"))[T.6-11]'] * screentime_range)
+    elif group == '12-17':
+        log_odds = (params['Intercept'] +
+                    params['C(AGE_GROUP, Treatment(reference="0-5"))[T.12-17]'] +
+                    params['SCREENTIME'] * screentime_range +
+                    params['SCREENTIME:C(AGE_GROUP, Treatment(reference="0-5"))[T.12-17]'] * screentime_range)
+
+    prob = 1 / (1 + np.exp(-log_odds))
+    ax.plot(screentime_range, prob * 100, color=color,
+            linewidth=2.5, label=f'Age {group}')
+
+ax.set_xticks([1, 2, 3, 4, 5])
+ax.set_xticklabels(['<1 hr', '1 hr', '2 hrs', '3 hrs', '4+ hrs'])
+ax.set_xlabel('Daily Screen Time')
+ax.set_ylabel('Predicted Probability of ADHD (%)')
+ax.set_title('H1b — Predicted ADHD Probability by Screen Time\n(by age group)')
+ax.legend(title='Age Group')
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig('visualizations/h1b_predicted_probability.png', dpi=150, bbox_inches='tight')
+plt.show()
+
+
+
+# H1b — percentage increase relative to baseline
+fig, ax = plt.subplots(figsize=(8, 5))
+
+colors = ['#e74c3c', '#3498db', '#2ecc71']
+params = h1b_clinical.params
+
+for color, group in zip(colors, ['0-5', '6-11', '12-17']):
+    if group == '0-5':
+        log_odds = (params['Intercept'] +
+                    params['SCREENTIME'] * screentime_range)
+    elif group == '6-11':
+        log_odds = (params['Intercept'] +
+                    params['C(AGE_GROUP, Treatment(reference="0-5"))[T.6-11]'] +
+                    params['SCREENTIME'] * screentime_range +
+                    params['SCREENTIME:C(AGE_GROUP, Treatment(reference="0-5"))[T.6-11]'] * screentime_range)
+    elif group == '12-17':
+        log_odds = (params['Intercept'] +
+                    params['C(AGE_GROUP, Treatment(reference="0-5"))[T.12-17]'] +
+                    params['SCREENTIME'] * screentime_range +
+                    params['SCREENTIME:C(AGE_GROUP, Treatment(reference="0-5"))[T.12-17]'] * screentime_range)
+
+    prob = 1 / (1 + np.exp(-log_odds))
+
+    # percentage increase relative to baseline — e.g. 0.2% -> 1.0% = 400% increase
+    prob_pct_change = ((prob - prob[0]) / prob[0]) * 100
+
+    ax.plot(screentime_range, prob_pct_change, color=color,
+            linewidth=2.5, label=f'Age {group}')
+
+ax.set_xticks([1, 2, 3, 4, 5])
+ax.set_xticklabels(['<1 hr', '1 hr', '2 hrs', '3 hrs', '4+ hrs'])
+ax.set_xlabel('Daily Screen Time')
+ax.set_ylabel('% Increase in ADHD Probability\n(relative to <1 hr)')
+ax.set_title('H1b — Relative % Increase in ADHD Probability by Screen Time\n(relative to <1 hr baseline)')
+ax.legend(title='Age Group')
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig('visualizations/h1b_relative_increase.png', dpi=150, bbox_inches='tight')
+plt.show()
