@@ -4,12 +4,12 @@ import numpy as np
 from supabase import create_client
 
 # --- Supabase credentials ---
-SUPABASE_URL = "https://opsqwdxidslmwwtupcin.supabase.co"
-SUPABASE_KEY = "sb_publishable_nC9DZv1ILfrgrTqFiFhWfQ_3hgROwfm"
+SUPABASE_URL = 
+SUPABASE_KEY = 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # --- Folder with CSVs ---
-csv_folder = "/Users/hannahw/dtsc-capstone/data/combined_nsch.csv"
+csv_folder = 
 
 def clean_dataframe(df):
 
