@@ -4,13 +4,13 @@
 
 A research-based Progressive Web App that visualizes children's screen time as an itemized receipt, revealing the mental health and behavioral costs backed by NSCH data analysis.
 
-## 🎯 Concept
+## Concept
 
 The paper's core frame is the **attention economy** — attention as a scarce resource that platforms extract. A receipt is the natural artifact of a transaction. Every day, a child's attention is being spent. This tool shows the receipt.
 
 **Why it's novel:** No existing screen time tool uses this metaphor. iPhone Screen Time gives raw minutes. This gives **meaning** — what was the attention spent on, and what was the cost?
 
-## 📊 Research Foundation
+## Research Foundation
 
 Based on survey-weighted logistic regression analysis of **315,000+ NSCH observations (2018-2024)**:
 
@@ -25,9 +25,8 @@ Based on survey-weighted logistic regression analysis of **315,000+ NSCH observa
 
 **SCREENTIME can't distinguish content type** — this tool addresses that by allowing categorization (social, video, gaming, educational).
 
-*Research: Ayesh et al., 2025, UNC Charlotte*
 
-## ✨ Features
+## Features
 
 ### Receipt Design
 - Thermal printer / cash register aesthetic
@@ -46,7 +45,7 @@ Based on survey-weighted logistic regression analysis of **315,000+ NSCH observa
 - ✅ Progressive Web App (installable from browser)
 - ✅ Demo data loader
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Install Dependencies
 ```bash
@@ -155,7 +154,7 @@ The risk calculator uses age-stratified thresholds based on research findings:
 ### Ages 18+
 - Moderate assessment (research focused on children)
 
-## 🔒 Privacy & Data
+## Privacy & Data
 
 **No data is collected or stored server-side.**
 
@@ -164,7 +163,7 @@ The risk calculator uses age-stratified thresholds based on research findings:
 - No analytics, no tracking, no databases
 - Completely client-side application
 
-## 🎓 Use Cases
+## Use Cases
 
 - **Parents** tracking daily/weekly screen time patterns
 - **Pediatricians** discussing screen time with families
@@ -172,7 +171,7 @@ The risk calculator uses age-stratified thresholds based on research findings:
 - **Researchers** demonstrating attention economy concepts
 - **Policy advocates** visualizing screen time risks
 
-## 📄 License & Attribution
+## License & Attribution
 
 Research foundation: Ayesh et al., 2025, UNC Charlotte  
 Data source: National Survey of Children's Health (NSCH), 2018-2024
