@@ -5,9 +5,7 @@ import Link from 'next/link'
 import { AppEntry } from './types'
 import { Receipt } from './components/Receipt'
 import { AppInputForm } from './components/AppInputForm'
-import { Button } from './components/ui/button'
 import { Input } from './components/ui/input'
-import { Label } from './components/ui/label'
 import { Download, Share2, RotateCcw, Sparkles, ArrowLeft } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import { getShareableURL, decodeReceiptData } from './utils/urlEncoder'
@@ -67,7 +65,6 @@ export default function CalculatorPage() {
     toast.success('Receipt reset')
   }
 
-  // Load from shared URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const receiptParam = params.get('receipt')
@@ -77,7 +74,6 @@ export default function CalculatorPage() {
     }
   }, [])
 
-  // Keyboard shortcuts
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'd') { e.preventDefault(); if (apps.length > 0) handleDownload() }
@@ -89,166 +85,131 @@ export default function CalculatorPage() {
   }, [apps])
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{
-      background: 'linear-gradient(135deg, #8B7355 0%, #6B5644 50%, #8B7355 100%)',
-    }}>
-      {/* Cork texture */}
-      <div className="absolute inset-0 opacity-30" style={{
-        backgroundImage: `
-          radial-gradient(circle at 20% 30%, rgba(139,115,85,0.3) 0%, transparent 50%),
-          radial-gradient(circle at 80% 70%, rgba(107,86,68,0.3) 0%, transparent 50%)`,
-      }} />
-
+    <div
+      className="min-h-screen"
+      style={{
+        fontFamily: 'Courier, monospace',
+        backgroundColor: '#f5f2ed',
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E")`,
+      }}
+    >
       <Toaster />
 
-      <div className="relative max-w-7xl mx-auto py-8 px-4">
+      <div className="max-w-5xl mx-auto px-4 py-8">
 
-        {/* Back nav */}
-        <div className="mb-6">
-          <Link href="/" className="inline-flex items-center gap-2 text-amber-200 hover:text-white text-sm font-mono transition-colors">
-            <ArrowLeft size={14} /> Back to Research
-          </Link>
-        </div>
+        {/* Nav */}
+        <Link href="/" className="inline-flex items-center gap-1.5 text-gray-400 hover:text-black text-xs uppercase tracking-widest mb-8 transition-colors">
+          <ArrowLeft size={12} /> Back
+        </Link>
 
         {/* Header */}
-        <div className="text-center mb-12 relative">
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-red-500 shadow-lg border-2 border-red-700"
-               style={{ boxShadow: '0 4px 8px rgba(0,0,0,0.3), inset 0 -2px 4px rgba(0,0,0,0.3)' }}>
-            <div className="w-2 h-2 rounded-full bg-red-300 absolute top-1.5 left-1.5" />
+        <div className="text-center mb-10">
+          <h1 className="text-4xl md:text-5xl font-black text-black tracking-tight mb-2" style={{ fontFamily: 'Arial Black, sans-serif' }}>
+            THE ATTENTION RECEIPT
+          </h1>
+          <div className="text-xs text-gray-400 uppercase tracking-[0.3em]">
+            See the real cost of screen time
           </div>
-          <div className="bg-yellow-50 inline-block px-8 py-6 shadow-2xl border-2 border-yellow-200"
-               style={{ transform: 'rotate(-1deg)', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}>
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2"
-                style={{ fontFamily: 'Impact, sans-serif', letterSpacing: '0.05em' }}>
-              THE ATTENTION RECEIPT
-            </h1>
-            <p className="text-base md:text-lg text-gray-700 px-4" style={{ fontFamily: 'Courier, monospace' }}>
-              See the real cost of screen time • 27,179 NSCH observations • Real regression model
-            </p>
-          </div>
+          <div className="mt-3 mx-auto w-48 border-t border-black" />
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-14">
 
-          {/* Left: Input clipboard */}
+          {/* ─── Left: Input ─── */}
           <div className="space-y-6">
-            <div className="bg-amber-50 p-8 relative shadow-2xl border-4 border-amber-900"
-                 style={{ transform: 'rotate(0.5deg)', boxShadow: '0 15px 40px rgba(0,0,0,0.4)' }}>
-              {/* Clipboard clip */}
-              <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-24 h-12 bg-gray-700 rounded-t-lg shadow-xl"
-                   style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
-                <div className="w-16 h-6 bg-gray-800 rounded-sm absolute top-3 left-4" />
+
+            {/* Age input */}
+            <div>
+              <div className="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-2">Child&apos;s Age</div>
+              <Input
+                type="number"
+                min={0}
+                max={18}
+                value={age}
+                onChange={e => setAge(parseInt(e.target.value) || 0)}
+                className="text-2xl font-bold bg-white border-2 border-black h-14 px-4 rounded-none focus:ring-0 focus:border-black"
+              />
+              <div className="text-[10px] text-gray-400 mt-1.5">
+                Risk varies by age group: 0–5, 6–11, 12–17
               </div>
+            </div>
 
-              <h2 className="text-2xl font-bold mb-6 text-center border-b-2 border-dashed border-amber-900 pb-2"
-                  style={{ fontFamily: 'Courier, monospace' }}>
-                CREATE RECEIPT
-              </h2>
+            {/* Divider */}
+            <div className="border-t border-dashed border-gray-300" />
 
-              <div className="mb-6 bg-white p-4 border-2 border-amber-800 shadow-inner">
-                <Label htmlFor="childAge" className="text-lg" style={{ fontFamily: 'Courier, monospace' }}>
-                  Child's Age (years)
-                </Label>
-                <Input
-                  id="childAge"
-                  type="number"
-                  min="0"
-                  max="18"
-                  value={age}
-                  onChange={e => setAge(parseInt(e.target.value) || 0)}
-                  className="mt-2 text-lg border-2 border-gray-400"
-                  style={{ fontFamily: 'Courier, monospace' }}
-                />
-                <p className="text-sm text-gray-600 mt-2" style={{ fontFamily: 'Courier, monospace' }}>
-                  Risk varies by age group (0–5, 6–11, 12–17) per our regression model
-                </p>
-              </div>
-
-              <div className="bg-white p-4 border-2 border-amber-800 shadow-inner">
+            {/* App input */}
+            <div>
+              <div className="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-3">Add Screen Time</div>
+              <div className="bg-white border-2 border-black p-5">
                 <AppInputForm apps={apps} onAddApp={handleAddApp} onRemoveApp={handleRemoveApp} />
               </div>
             </div>
 
-            {/* Actions sticky note */}
-            <div className="bg-yellow-200 p-6 relative shadow-xl"
-                 style={{ transform: 'rotate(-1.5deg)', boxShadow: '0 8px 20px rgba(0,0,0,0.3)' }}>
-              <div className="absolute -top-1 left-0 right-0 h-8 bg-yellow-300 opacity-50" />
-              <h3 className="text-xl font-bold mb-4 text-center" style={{ fontFamily: 'Courier, monospace' }}>
-                QUICK ACTIONS
-              </h3>
-              <div className="grid grid-cols-1 gap-3">
-                <Button onClick={handleDownload} disabled={isDownloading || apps.length === 0}
-                  className="w-full bg-black hover:bg-gray-800 text-white font-bold py-3"
-                  style={{ fontFamily: 'Courier, monospace' }}>
-                  <Download className="w-4 h-4 mr-2" />
-                  {isDownloading ? 'PRINTING...' : 'DOWNLOAD PNG'}
-                </Button>
-                <Button onClick={handleShare} disabled={apps.length === 0} variant="outline"
-                  className="w-full border-2 border-black font-bold py-3"
-                  style={{ fontFamily: 'Courier, monospace' }}>
-                  <Share2 className="w-4 h-4 mr-2" /> COPY LINK
-                </Button>
-                <Button onClick={handleReset} variant="outline"
-                  className="w-full border-2 border-black font-bold py-3"
-                  style={{ fontFamily: 'Courier, monospace' }}>
-                  <RotateCcw className="w-4 h-4 mr-2" /> RESET
-                </Button>
-                <Button onClick={loadDemoData} variant="outline"
-                  className="w-full border-2 border-black font-bold py-3 bg-yellow-100"
-                  style={{ fontFamily: 'Courier, monospace' }}>
-                  <Sparkles className="w-4 h-4 mr-2" /> TRY DEMO
-                </Button>
-              </div>
+            {/* Divider */}
+            <div className="border-t border-dashed border-gray-300" />
+
+            {/* Actions */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={handleDownload}
+                disabled={isDownloading || apps.length === 0}
+                className="bg-black text-white text-xs font-bold uppercase tracking-widest py-3 px-4 hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                <Download size={13} />
+                {isDownloading ? 'Saving...' : 'Download'}
+              </button>
+              <button
+                onClick={handleShare}
+                disabled={apps.length === 0}
+                className="bg-white text-black text-xs font-bold uppercase tracking-widest py-3 px-4 border-2 border-black hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                <Share2 size={13} />
+                Share
+              </button>
+              <button
+                onClick={handleReset}
+                className="bg-white text-black text-xs font-bold uppercase tracking-widest py-3 px-4 border-2 border-black hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <RotateCcw size={13} />
+                Reset
+              </button>
+              <button
+                onClick={loadDemoData}
+                className="bg-white text-black text-xs font-bold uppercase tracking-widest py-3 px-4 border-2 border-black hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <Sparkles size={13} />
+                Demo
+              </button>
             </div>
 
-            {/* Research note card */}
-            <div className="bg-white p-6 border-2 border-blue-300 shadow-xl"
-                 style={{ transform: 'rotate(0.5deg)', background: 'linear-gradient(to bottom, #e0f2fe 0%, #bae6fd 2px, white 2px)' }}>
-              <div className="border-l-4 border-blue-500 pl-4">
-                <h3 className="text-lg font-bold mb-3 text-blue-900" style={{ fontFamily: 'Courier, monospace' }}>
-                  RESEARCH DATA
-                </h3>
-                <p className="text-sm text-blue-900 leading-relaxed mb-2" style={{ fontFamily: 'Courier, monospace' }}>
-                  Risk scores use survey-weighted logistic regression on NSCH 2022 (n=27,179).
-                  ADHD model: OR 1.51/hr (ages 0–5). Anxiety: OR 1.30/hr (ages 12–17).
-                  Depression: OR 1.22/hr (no significant age interaction).
-                </p>
-                <p className="text-xs text-blue-700 font-bold" style={{ fontFamily: 'Courier, monospace' }}>
-                  — Ayesh et al., 2025, UNC Charlotte
-                </p>
+            {/* Fine print */}
+            <div className="text-[10px] text-gray-400 leading-relaxed">
+              <div className="border-t border-dashed border-gray-300 pt-3">
+                Risk scores: survey-weighted logistic regression, NSCH 2022 (n=27,179).
+                ADHD OR 1.51/hr (ages 0–5) · Anxiety OR 1.30/hr (ages 12–17) · Depression OR 1.22/hr.
+                <span className="block mt-1 font-bold">Ayesh et al., 2025, UNC Charlotte</span>
               </div>
             </div>
           </div>
 
-          {/* Right: Receipt preview */}
+          {/* ─── Right: Receipt ─── */}
           <div className="lg:sticky lg:top-8 h-fit">
-            <div className="relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-32 h-12 bg-yellow-100 opacity-60 shadow-md"
-                   style={{ transform: 'rotate(-2deg)' }} />
-              <div className="bg-white p-8 relative shadow-2xl"
-                   style={{ transform: 'rotate(-0.5deg)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}>
-                <h2 className="text-2xl font-bold mb-6 text-center border-b-4 border-dashed border-black pb-2"
-                    style={{ fontFamily: 'Courier, monospace', letterSpacing: '0.1em' }}>
-                  🧾 YOUR RECEIPT
-                </h2>
-                <Receipt age={age} apps={apps} />
-              </div>
-              <div className="absolute -bottom-2 right-4 w-16 h-16 bg-gray-300 opacity-20 rounded-full blur-xl" />
+            <div
+              className="bg-white shadow-xl relative"
+              style={{
+                boxShadow: '0 4px 20px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)',
+              }}
+            >
+              <Receipt age={age} apps={apps} />
+            </div>
+
+            {/* Keyboard shortcuts */}
+            <div className="text-[9px] text-gray-300 text-center mt-4 tracking-widest uppercase">
+              ⌘K demo · ⌘D download · ⌘⇧R reset
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="mt-16 text-center">
-          <div className="inline-block bg-gray-100 px-8 py-4 shadow-lg border-t-4 border-gray-300"
-               style={{
-                 transform: 'rotate(-0.5deg)',
-                 clipPath: 'polygon(0 0, 100% 0, 100% 85%, 95% 90%, 90% 85%, 85% 90%, 80% 85%, 75% 90%, 70% 85%, 65% 90%, 60% 85%, 55% 90%, 50% 85%, 45% 90%, 40% 85%, 35% 90%, 30% 85%, 25% 90%, 20% 85%, 15% 90%, 10% 85%, 5% 90%, 0 85%)'
-               }}>
-            <p className="text-sm text-gray-700 font-mono">The Attention Receipt · DTSC Capstone · UNC Charlotte</p>
-            <p className="mt-1 text-xs text-gray-500 font-mono">⌨ Shortcuts: ⌘K demo · ⌘D download · ⌘⇧R reset</p>
-          </div>
-        </footer>
       </div>
     </div>
   )
