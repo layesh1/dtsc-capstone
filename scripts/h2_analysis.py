@@ -146,6 +146,8 @@ print_odds_ratios(h2b_anxiety, "H2b — Clinical Anxiety x Age Group")
 screentime_range = np.linspace(1, 5, 100)
 colors = ['#e74c3c', '#3498db', '#2ecc71']
  
+tick_locations = [0, 50, 100, 150, 200, 250, 300, 350, 400]
+
 # H2a Depression: predicted probabilities by screen time (held at mean age)
 mean_age_dep = df[['DEPRESSION', 'SCREENTIME', 'AGE', 'FWC']].dropna()['AGE'].mean()
  
@@ -282,6 +284,8 @@ ax.set_ylabel('% Increase in Depression Probability\n(relative to <1 hr)')
 ax.set_title('H2b — Relative % Increase in Depression Probability by Screen Time\n(relative to <1 hr baseline)')
 ax.legend(title='Age Group')
 ax.grid(True, alpha=0.3)
+ax.set_ylim(0, 400)
+ax.set_yticks(tick_locations)
 plt.tight_layout()
 plt.savefig('visualizations/h2b_depression_relative_increase.png', dpi=150, bbox_inches='tight')
 plt.show()
@@ -315,6 +319,8 @@ ax.set_ylabel('% Increase in Anxiety Probability\n(relative to <1 hr)')
 ax.set_title('H2b — Relative % Increase in Anxiety Probability by Screen Time\n(relative to <1 hr baseline)')
 ax.legend(title='Age Group')
 ax.grid(True, alpha=0.3)
+ax.set_ylim(0, 400)
+ax.set_yticks(tick_locations)
 plt.tight_layout()
 plt.savefig('visualizations/h2b_anxiety_relative_increase.png', dpi=150, bbox_inches='tight')
 plt.show()
