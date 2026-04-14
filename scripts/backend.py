@@ -31,6 +31,8 @@ from sklearn.multioutput import MultiOutputClassifier
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.metrics import roc_auc_score, RocCurveDisplay
 warnings.filterwarnings('ignore')
+from sklearn.calibration import CalibratedClassifierCV
+
 
 
 OUTCOMES = ['ADHD_CLINICAL', 'ANXIETY', 'DEPRESSION']
@@ -222,7 +224,6 @@ class AttentionReceipt:
         self.model = MultiOutputClassifier(base_rf)
         self.model.fit(X, Y, sample_weight=sample_weight)
 
-        from sklearn.calibration import CalibratedClassifierCV
         print("Calibrating probabilities...")
         self.calibrated_estimators_ = []
         for i, outcome in enumerate(OUTCOMES):
