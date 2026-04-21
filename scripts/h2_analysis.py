@@ -23,7 +23,7 @@ def fetch_all_rows(supabase, table_name):
 
     while True:
         response = supabase.table(table_name)\
-            .select("HHID, SCREENTIME, K2Q32A, K2Q33A, FWC, STRATUM, FIPSST, AGE_GROUP, SC_AGE_YEARS")\
+            .select("HHID, SCREENTIME, K2Q32A, K2Q32B, K2Q33A, K2Q33B, SC_SEX, FWC, STRATUM, FIPSST, AGE_GROUP, SC_AGE_YEARS")\
             .range(offset, offset + batch_size - 1)\
             .execute()
 
@@ -42,28 +42,32 @@ def fetch_all_rows(supabase, table_name):
 
 df = fetch_all_rows(supabase, "nsch_data")
 
-# data prep 
-
-# values are 1 and 2a, replace 2a with 2 for modeling
+# data prep
 df['STRATUM'] = df['STRATUM'].replace('2a', '2')
-
-# combine state and stratum for clustering
 df['STRATA_CROSSED'] = df['FIPSST'].astype(str) + '_' + df['STRATUM'].astype(str)
 
-# rename columns for readability
+# rename non-outcome columns only
 df = df.rename(columns={
-    'K2Q32A': 'DEPRESSION',
-    'K2Q33A': 'ANXIETY',
     'SC_AGE_YEARS': 'AGE',
     'SC_SEX': 'SEX',
 })
 
-# convert to binary 0/1
-df['DEPRESSION'] = (df['DEPRESSION'] == 1).astype(int)
-df['ANXIETY'] = (df['ANXIETY'] == 1).astype(int)
+# build outcomes BEFORE any further renaming
+# ever diagnosed (K2Q32A=1) AND currently has (K2Q32B=1)
+df['DEPRESSION'] = (
+    (df['K2Q32A'] == 1) & (df['K2Q32B'] == 1)
+).astype(int)
+
+df['ANXIETY'] = (
+    (df['K2Q33A'] == 1) & (df['K2Q33B'] == 1)
+).astype(int)
+
+print(f"\nOutcome prevalence:")
+print(f"  Depression: {df['DEPRESSION'].mean():.1%}")
+print(f"  Anxiety:    {df['ANXIETY'].mean():.1%}")
+print(f"  n total:    {len(df):,}")
 
 # helper function to print odds ratios and confidence intervals
-
 def print_odds_ratios(model, label):
     print(f"\n{'='*60}")
     print(f"{label} — Odds Ratios")
@@ -75,47 +79,49 @@ def print_odds_ratios(model, label):
         'p_value': model.pvalues
     }).round(3))
 
-# H1a — clinical Depression across all ages 
-model_cols = ['DEPRESSION', 'SCREENTIME', 'AGE', 'FWC']
+# H2a — clinical Depression across all ages
+model_cols = ['DEPRESSION', 'SCREENTIME', 'AGE', 'SEX', 'FWC']
 df_clean = df[model_cols].dropna().reset_index(drop=True).copy()
 df_clean['FWC_norm'] = df_clean['FWC'] / df_clean['FWC'].mean()
 
+print(f"\nH2a Depression analytic sample: n={len(df_clean):,}")
+
 h2a_depression = smf.glm(
-    'DEPRESSION ~ SCREENTIME + AGE',
+    'DEPRESSION ~ SCREENTIME + AGE + C(SEX)',
     data=df_clean,
     family=Binomial(),
     var_weights=df_clean['FWC_norm']
 ).fit()
 
 print(h2a_depression.summary())
-print_odds_ratios(h2a_depression, "H2a — Clinical Depression (all ages)")    
+print_odds_ratios(h2a_depression, "H2a — Clinical Depression (all ages)")
 
-# H2a — clinical Anxiety across all ages 
-model_cols = ['ANXIETY', 'SCREENTIME', 'AGE', 'FWC']
+# H2a — clinical Anxiety across all ages
+model_cols = ['ANXIETY', 'SCREENTIME', 'AGE', 'SEX', 'FWC']
 df_clean = df[model_cols].dropna().reset_index(drop=True).copy()
 df_clean['FWC_norm'] = df_clean['FWC'] / df_clean['FWC'].mean()
 
+print(f"\nH2a Anxiety analytic sample: n={len(df_clean):,}")
+
 h2a_anxiety = smf.glm(
-    'ANXIETY ~ SCREENTIME + AGE',
+    'ANXIETY ~ SCREENTIME + AGE + C(SEX)',
     data=df_clean,
     family=Binomial(),
     var_weights=df_clean['FWC_norm']
 ).fit()
 
 print(h2a_anxiety.summary())
-print_odds_ratios(h2a_anxiety, "H2a — Clinical Anxiety (all ages)")    
-
+print_odds_ratios(h2a_anxiety, "H2a — Clinical Anxiety (all ages)")
 
 # H2b — depression association strongest in 12-17 age group
-# This association will be strongest in the 12-17 age group, as early childhood
-# is the most critical window for attentional development
-
-model_cols_h2b = ['DEPRESSION', 'SCREENTIME', 'AGE_GROUP', 'FWC']
+model_cols_h2b = ['DEPRESSION', 'SCREENTIME', 'AGE_GROUP', 'SEX', 'FWC']
 df_clean_h2b = df[model_cols_h2b].dropna().reset_index(drop=True).copy()
 df_clean_h2b['FWC_norm'] = df_clean_h2b['FWC'] / df_clean_h2b['FWC'].mean()
 
+print(f"\nH2b Depression analytic sample: n={len(df_clean_h2b):,}")
+
 h2b_depression = smf.glm(
-    '''DEPRESSION ~ SCREENTIME * C(AGE_GROUP, Treatment(reference="12-17"))''',
+    '''DEPRESSION ~ SCREENTIME * C(AGE_GROUP, Treatment(reference="12-17")) + C(SEX)''',
     data=df_clean_h2b,
     family=Binomial(),
     var_weights=df_clean_h2b['FWC_norm']
@@ -124,17 +130,15 @@ h2b_depression = smf.glm(
 print(h2b_depression.summary())
 print_odds_ratios(h2b_depression, "H2b — Clinical Depression x Age Group")
 
-
 # H2b — anxiety association strongest in 12-17 age group
-# This association will be strongest in the 12-17 age group, as early childhood
-# is the most critical window for attentional development
-
-model_cols_h2b = ['ANXIETY', 'SCREENTIME', 'AGE_GROUP', 'FWC']
+model_cols_h2b = ['ANXIETY', 'SCREENTIME', 'AGE_GROUP', 'SEX', 'FWC']
 df_clean_h2b = df[model_cols_h2b].dropna().reset_index(drop=True).copy()
 df_clean_h2b['FWC_norm'] = df_clean_h2b['FWC'] / df_clean_h2b['FWC'].mean()
 
+print(f"\nH2b Anxiety analytic sample: n={len(df_clean_h2b):,}")
+
 h2b_anxiety = smf.glm(
-    '''ANXIETY ~ SCREENTIME * C(AGE_GROUP, Treatment(reference="12-17"))''',
+    '''ANXIETY ~ SCREENTIME * C(AGE_GROUP, Treatment(reference="12-17")) + C(SEX)''',
     data=df_clean_h2b,
     family=Binomial(),
     var_weights=df_clean_h2b['FWC_norm']
@@ -145,18 +149,19 @@ print_odds_ratios(h2b_anxiety, "H2b — Clinical Anxiety x Age Group")
 
 screentime_range = np.linspace(1, 5, 100)
 colors = ['#e74c3c', '#3498db', '#2ecc71']
- 
 tick_locations = [0, 50, 100, 150, 200, 250, 300, 350, 400]
 
-# H2a Depression: predicted probabilities by screen time (held at mean age)
+os.makedirs('visualizations', exist_ok=True)
+
+# H2a Depression — predicted probabilities by screen time (held at mean age)
 mean_age_dep = df[['DEPRESSION', 'SCREENTIME', 'AGE', 'FWC']].dropna()['AGE'].mean()
- 
+
 fig, ax = plt.subplots(figsize=(8, 5))
 log_odds_dep = (h2a_depression.params['Intercept'] +
                 h2a_depression.params['SCREENTIME'] * screentime_range +
                 h2a_depression.params['AGE'] * mean_age_dep)
 prob_dep = 1 / (1 + np.exp(-log_odds_dep))
- 
+
 ax.plot(screentime_range, prob_dep * 100, color='#e74c3c', linewidth=2.5)
 ax.set_xticks([1, 2, 3, 4, 5])
 ax.set_xticklabels(['<1 hr', '1 hr', '2 hrs', '3 hrs', '4+ hrs'])
@@ -167,16 +172,16 @@ ax.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.savefig('visualizations/h2a_depression_predicted_probability.png', dpi=150, bbox_inches='tight')
 plt.show()
- 
-# H2a Anxiety: predicted probabilities by screen time (held at mean age)
+
+# H2a Anxiety — predicted probabilities by screen time (held at mean age)
 mean_age_anx = df[['ANXIETY', 'SCREENTIME', 'AGE', 'FWC']].dropna()['AGE'].mean()
- 
+
 fig, ax = plt.subplots(figsize=(8, 5))
 log_odds_anx = (h2a_anxiety.params['Intercept'] +
                 h2a_anxiety.params['SCREENTIME'] * screentime_range +
                 h2a_anxiety.params['AGE'] * mean_age_anx)
 prob_anx = 1 / (1 + np.exp(-log_odds_anx))
- 
+
 ax.plot(screentime_range, prob_anx * 100, color='#3498db', linewidth=2.5)
 ax.set_xticks([1, 2, 3, 4, 5])
 ax.set_xticklabels(['<1 hr', '1 hr', '2 hrs', '3 hrs', '4+ hrs'])
@@ -187,12 +192,11 @@ ax.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.savefig('visualizations/h2a_anxiety_predicted_probability.png', dpi=150, bbox_inches='tight')
 plt.show()
- 
-# H2b Depression: predicted probabilities by age group
-# reference group is 12-17, so 12-17 uses only Intercept + SCREENTIME
+
+# H2b Depression — predicted probabilities by age group
 fig, ax = plt.subplots(figsize=(8, 5))
 params_dep = h2b_depression.params
- 
+
 for color, group in zip(colors, ['0-5', '6-11', '12-17']):
     if group == '12-17':
         log_odds = (params_dep['Intercept'] +
@@ -207,10 +211,10 @@ for color, group in zip(colors, ['0-5', '6-11', '12-17']):
                     params_dep['C(AGE_GROUP, Treatment(reference="12-17"))[T.6-11]'] +
                     params_dep['SCREENTIME'] * screentime_range +
                     params_dep['SCREENTIME:C(AGE_GROUP, Treatment(reference="12-17"))[T.6-11]'] * screentime_range)
- 
+
     prob = 1 / (1 + np.exp(-log_odds))
     ax.plot(screentime_range, prob * 100, color=color, linewidth=2.5, label=f'Age {group}')
- 
+
 ax.set_xticks([1, 2, 3, 4, 5])
 ax.set_xticklabels(['<1 hr', '1 hr', '2 hrs', '3 hrs', '4+ hrs'])
 ax.set_xlabel('Daily Screen Time')
@@ -221,11 +225,11 @@ ax.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.savefig('visualizations/h2b_depression_predicted_probability.png', dpi=150, bbox_inches='tight')
 plt.show()
- 
-# H2b Anxiety: predicted probabilities by age group
+
+# H2b Anxiety — predicted probabilities by age group
 fig, ax = plt.subplots(figsize=(8, 5))
 params_anx = h2b_anxiety.params
- 
+
 for color, group in zip(colors, ['0-5', '6-11', '12-17']):
     if group == '12-17':
         log_odds = (params_anx['Intercept'] +
@@ -240,10 +244,10 @@ for color, group in zip(colors, ['0-5', '6-11', '12-17']):
                     params_anx['C(AGE_GROUP, Treatment(reference="12-17"))[T.6-11]'] +
                     params_anx['SCREENTIME'] * screentime_range +
                     params_anx['SCREENTIME:C(AGE_GROUP, Treatment(reference="12-17"))[T.6-11]'] * screentime_range)
- 
+
     prob = 1 / (1 + np.exp(-log_odds))
     ax.plot(screentime_range, prob * 100, color=color, linewidth=2.5, label=f'Age {group}')
- 
+
 ax.set_xticks([1, 2, 3, 4, 5])
 ax.set_xticklabels(['<1 hr', '1 hr', '2 hrs', '3 hrs', '4+ hrs'])
 ax.set_xlabel('Daily Screen Time')
@@ -254,10 +258,10 @@ ax.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.savefig('visualizations/h2b_anxiety_predicted_probability.png', dpi=150, bbox_inches='tight')
 plt.show()
- 
-# H2b Depression: relative % increase from <1 hr baseline
+
+# H2b Depression — relative % increase from <1 hr baseline
 fig, ax = plt.subplots(figsize=(8, 5))
- 
+
 for color, group in zip(colors, ['0-5', '6-11', '12-17']):
     if group == '12-17':
         log_odds = (params_dep['Intercept'] +
@@ -272,11 +276,11 @@ for color, group in zip(colors, ['0-5', '6-11', '12-17']):
                     params_dep['C(AGE_GROUP, Treatment(reference="12-17"))[T.6-11]'] +
                     params_dep['SCREENTIME'] * screentime_range +
                     params_dep['SCREENTIME:C(AGE_GROUP, Treatment(reference="12-17"))[T.6-11]'] * screentime_range)
- 
+
     prob = 1 / (1 + np.exp(-log_odds))
     prob_pct_change = ((prob - prob[0]) / prob[0]) * 100
     ax.plot(screentime_range, prob_pct_change, color=color, linewidth=2.5, label=f'Age {group}')
- 
+
 ax.set_xticks([1, 2, 3, 4, 5])
 ax.set_xticklabels(['<1 hr', '1 hr', '2 hrs', '3 hrs', '4+ hrs'])
 ax.set_xlabel('Daily Screen Time')
@@ -289,10 +293,10 @@ ax.set_yticks(tick_locations)
 plt.tight_layout()
 plt.savefig('visualizations/h2b_depression_relative_increase.png', dpi=150, bbox_inches='tight')
 plt.show()
- 
-# H2b Anxiety: relative % increase from <1 hr baseline
+
+# H2b Anxiety — relative % increase from <1 hr baseline
 fig, ax = plt.subplots(figsize=(8, 5))
- 
+
 for color, group in zip(colors, ['0-5', '6-11', '12-17']):
     if group == '12-17':
         log_odds = (params_anx['Intercept'] +
@@ -307,11 +311,11 @@ for color, group in zip(colors, ['0-5', '6-11', '12-17']):
                     params_anx['C(AGE_GROUP, Treatment(reference="12-17"))[T.6-11]'] +
                     params_anx['SCREENTIME'] * screentime_range +
                     params_anx['SCREENTIME:C(AGE_GROUP, Treatment(reference="12-17"))[T.6-11]'] * screentime_range)
- 
+
     prob = 1 / (1 + np.exp(-log_odds))
     prob_pct_change = ((prob - prob[0]) / prob[0]) * 100
     ax.plot(screentime_range, prob_pct_change, color=color, linewidth=2.5, label=f'Age {group}')
- 
+
 ax.set_xticks([1, 2, 3, 4, 5])
 ax.set_xticklabels(['<1 hr', '1 hr', '2 hrs', '3 hrs', '4+ hrs'])
 ax.set_xlabel('Daily Screen Time')
@@ -319,7 +323,7 @@ ax.set_ylabel('% Increase in Anxiety Probability\n(relative to <1 hr)')
 ax.set_title('H2b — Relative % Increase in Anxiety Probability by Screen Time\n(relative to <1 hr baseline)')
 ax.legend(title='Age Group')
 ax.grid(True, alpha=0.3)
-ax.set_ylim(0, 400)
+ax.set_ylim(0, 600)
 ax.set_yticks(tick_locations)
 plt.tight_layout()
 plt.savefig('visualizations/h2b_anxiety_relative_increase.png', dpi=150, bbox_inches='tight')

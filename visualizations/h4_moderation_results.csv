@@ -1,0 +1,34 @@
+age_group,outcome,moderator,p_value,aic_full,aic_reduced,n,p_corrected,significant
+0-5,ADHD,Family Income,0.0371,13505.12,13507.6,90355,0.0395,True
+0-5,ADHD,Race/Ethnicity,0.0003,13606.63,13620.09,90355,0.0004,True
+0-5,ADHD,Parental Education,0.0,13429.83,13519.81,90355,0.0,True
+6-11,ADHD,Family Income,0.0035,59324.76,59332.36,90536,0.0044,True
+6-11,ADHD,Race/Ethnicity,0.0,59076.54,59104.17,90536,0.0,True
+6-11,ADHD,Parental Education,0.0021,59162.8,59171.47,90536,0.0028,True
+12-17,ADHD,Family Income,0.001,85516.27,85526.47,118085,0.0014,True
+12-17,ADHD,Race/Ethnicity,0.0,84689.36,84724.02,118085,0.0,True
+12-17,ADHD,Parental Education,0.0,84831.36,84914.53,118085,0.0,True
+0-5,Anxiety,Family Income,0.0,13853.45,13872.88,90355,0.0,True
+0-5,Anxiety,Race/Ethnicity,0.0192,13871.75,13875.23,90355,0.0218,True
+0-5,Anxiety,Parental Education,0.0,13922.39,13943.32,90355,0.0,True
+6-11,Anxiety,Family Income,0.7989,51415.69,51410.7,90536,0.7989,False
+6-11,Anxiety,Race/Ethnicity,0.0075,50988.97,50994.76,90536,0.0088,True
+6-11,Anxiety,Parental Education,0.0,51263.66,51303.59,90536,0.0,True
+12-17,Anxiety,Family Income,0.0001,95020.15,95035.66,118085,0.0002,True
+12-17,Anxiety,Race/Ethnicity,0.0,94082.23,94115.66,118085,0.0,True
+12-17,Anxiety,Parental Education,0.0052,94080.06,94086.8,118085,0.0064,True
+0-5,Depression,Family Income,0.0229,1460.45,1463.99,90355,0.0252,True
+0-5,Depression,Race/Ethnicity,0.0001,1603.48,1619.24,90355,0.0002,True
+0-5,Depression,Parental Education,0.0001,1549.78,1565.65,90355,0.0002,True
+6-11,Depression,Family Income,0.3925,17746.55,17743.55,90536,0.4048,False
+6-11,Depression,Race/Ethnicity,0.0,17840.84,17914.16,90536,0.0,True
+6-11,Depression,Parental Education,0.0001,17867.62,17883.34,90536,0.0002,True
+12-17,Depression,Family Income,0.0,62812.26,62928.39,118085,0.0,True
+12-17,Depression,Race/Ethnicity,0.0,62635.31,62763.97,118085,0.0,True
+12-17,Depression,Parental Education,0.0,62557.32,62779.03,118085,0.0,True
+6-11,Physical Activity,Family Income,0.0,120900.74,121031.49,90536,0.0,True
+6-11,Physical Activity,Race/Ethnicity,0.0,120830.81,120962.98,90536,0.0,True
+6-11,Physical Activity,Parental Education,0.0,120651.47,120807.75,90536,0.0,True
+12-17,Physical Activity,Family Income,0.0,154375.89,154619.83,118085,0.0,True
+12-17,Physical Activity,Race/Ethnicity,0.0,155180.48,155354.37,118085,0.0,True
+12-17,Physical Activity,Parental Education,0.0,153985.56,154168.22,118085,0.0,True
