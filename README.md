@@ -12,12 +12,6 @@
 - `visualizations/` — Figures for paper
 - `figma-design/` — Source for the Attention Receipt web app
 
-## Web App
-Live deployment: https://dtsc-capstone.vercel.app  
-The web app uses a Random Forest model for individual-level prediction.  
-Statistical inference in the paper uses survey-weighted logistic regression.  
-These are methodologically distinct — see paper Section 3.5.
-
 ## Key Findings
 - Screen time → ADHD strongest in ages 0–5 (OR = 1.32)
 - Screen time → anxiety strongest in ages 12–17
